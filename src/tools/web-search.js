@@ -2,6 +2,8 @@ import { tavilyClient } from "../clients/tavily-client.js";
 
 export const webSearch = async ({ query }) => {
   try {
+    console.log("calling web search");
+
     const resp = await tavilyClient.search(query, { maxResults: 3 });
 
     const finalResult = resp.results.map(({ content }) => content).join("\n\n");
