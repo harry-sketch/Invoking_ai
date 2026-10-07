@@ -24,7 +24,7 @@ export const runAgent = async (question) => {
 
     while (true) {
       const completions = await groq.chat.completions.create({
-        model: "openai/gpt-oss-120b",
+        model: "openai/gpt-oss-20b",
         temperature: 0.2,
         messages: messages,
         tools: [
