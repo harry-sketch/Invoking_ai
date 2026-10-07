@@ -8,12 +8,20 @@ export const createServer = async () => {
   app.use(cors(), express.json());
 
   app.post("/chat", async (req, res) => {
-    const { question } = req.body;
+    const { question, conversationId } = req.body;
 
-    const response = await runAgent(question);
+    if (!question || !conversationId) {
+      res.status(400).json({
+        message: "All fields must required!!!",
+      });
+
+      return;
+    }
+
+    const response = await runAgent(question, conversationId);
 
     return res.json({
-      response,
+      messages: response,
     });
   });
 

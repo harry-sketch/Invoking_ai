@@ -1,9 +1,14 @@
+import NodeCache from "node-cache";
 import { groq } from "../clients/groq-client.js";
 import { webSearch } from "../tools/web-search.js";
 
-export const runAgent = async (question) => {
+const myCache = new NodeCache({
+  stdTTL: 60 * 60 * 24,
+});
+
+export const runAgent = async (question, conversationId) => {
   try {
-    const messages = [
+    const baseMessages = [
       {
         role: "system",
         content: `You are an Iron-Man, a smart personal assistant who answers the asked questions. You have access to the following tools.
@@ -13,16 +18,23 @@ export const runAgent = async (question) => {
       },
     ];
 
-    if (question.toLowerCase() === "bye") {
-      return "Goodbye";
-    }
+    const messages = myCache.get(conversationId) ?? baseMessages;
 
     messages.push({
       role: "user",
       content: question,
     });
 
+    const MAX_RETRIES = 5;
+    let count = 0;
+
     while (true) {
+      if (count > MAX_RETRIES) {
+        return "Max limit Reached....";
+      }
+
+      count++;
+
       const completions = await groq.chat.completions.create({
         model: "openai/gpt-oss-20b",
         temperature: 0.2,
@@ -55,6 +67,8 @@ export const runAgent = async (question) => {
       const tools = completions.choices[0].message.tool_calls;
 
       if (!tools?.length) {
+        myCache.set(conversationId, messages);
+
         return completions.choices[0].message.content;
       }
 

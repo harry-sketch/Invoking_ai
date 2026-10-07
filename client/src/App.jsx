@@ -1,6 +1,10 @@
 import { useState } from "react";
 import "./App.css";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
+const conversationId =
+  Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
 
 function App() {
   const [isThinking, setIsThinking] = useState(false);
@@ -13,6 +17,7 @@ function App() {
     setMessages((prev) => [
       ...prev,
       {
+        id: crypto.randomUUID(),
         role: "user",
         content: question,
       },
@@ -28,6 +33,7 @@ function App() {
         },
         body: JSON.stringify({
           question,
+          conversationId,
         }),
       });
 
@@ -35,7 +41,7 @@ function App() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "Assistant", content: data.response },
+        { id: crypto.randomUUID(), role: "Assistant", content: data.messages },
       ]);
 
       setQuestion("");
@@ -70,12 +76,14 @@ function App() {
           {isThinking && <div>🧠 Thinking...</div>}
 
           {messages.map((mesage) => (
-            <div key={Math.floor(Math.random + 10 * 200)}>
+            <div key={mesage.id}>
               <strong>
                 {mesage.role === "user" ? "You: " : "Assistant: "}
               </strong>
 
-              <ReactMarkdown>{mesage.content}</ReactMarkdown>
+              <ReactMarkdown rehypePlugins={[remarkGfm]}>
+                {mesage.content}
+              </ReactMarkdown>
             </div>
           ))}
         </div>
